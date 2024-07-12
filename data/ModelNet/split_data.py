@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 import pickle
-
+import ipdb
 
 def dump_pickle(data, filename):
     with open(filename, 'wb') as f:
@@ -16,10 +16,11 @@ def process(subset):
     all_labels = []
     for line in lines:
         filename = line.strip()
+        #ipdb.set_trace()
         h5file = h5py.File(f'modelnet40_ply_hdf5_2048/{filename}', 'r')
         all_points.append(h5file['data'][:])
         all_normals.append(h5file['normal'][:])
-        all_labels.append(h5file['label'][:].flatten().astype(np.int))
+        all_labels.append(h5file['label'][:].flatten().astype(np.int32))
     points = np.concatenate(all_points, axis=0)
     normals = np.concatenate(all_normals, axis=0)
     labels = np.concatenate(all_labels, axis=0)

@@ -2,7 +2,7 @@ from functools import partial
 
 import numpy as np
 import torch
-
+from  tqdm import tqdm
 from geotransformer.modules.ops import grid_subsample, radius_search
 from geotransformer.utils.torch import build_dataloader
 
@@ -198,7 +198,7 @@ def calibrate_neighbors_stack_mode(
     max_neighbor_limits = [hist_n] * num_stages
 
     # Get histogram of neighborhood sizes i in 1 epoch max.
-    for i in range(len(dataset)):
+    for i in tqdm(range(len(dataset))):
         data_dict = collate_fn(
             [dataset[i]], num_stages, voxel_size, search_radius, max_neighbor_limits, precompute_data=True
         )

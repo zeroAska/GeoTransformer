@@ -61,6 +61,7 @@ class SingleTester(BaseTester):
             result_dict = self.eval_step(self.iteration, data_dict, output_dict)
             # after step
             self.after_test_step(self.iteration, data_dict, output_dict, result_dict)
+            #ipdb.set_trace()
             # logging
             result_dict = release_cuda(result_dict)
             summary_board.update_from_result_dict(result_dict)

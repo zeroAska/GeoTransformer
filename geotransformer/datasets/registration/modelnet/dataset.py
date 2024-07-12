@@ -5,11 +5,12 @@ import numpy as np
 import torch.utils.data
 import open3d as o3d
 from IPython import embed
-
+import ipdb
 from geotransformer.utils.common import load_pickle
 from geotransformer.utils.pointcloud import random_sample_transform, apply_transform, inverse_transform, regularize_normals
 from geotransformer.utils.registration import compute_overlap
 from geotransformer.utils.open3d import estimate_normals, voxel_downsample
+from geotransformer.transforms.gmm_noise import GmmSample
 from geotransformer.transforms.functional import (
     normalize_points,
     random_jitter_points,
@@ -62,6 +63,7 @@ class ModelNetPairDataset(torch.utils.data.Dataset):
         max_overlap: Optional[float] = None,
         estimate_normal: bool = False,
         overfitting_index: Optional[int] = None,
+            outlier_augmentation: Optional[float] = 0,
     ):
         super(ModelNetPairDataset, self).__init__()
 
@@ -90,12 +92,18 @@ class ModelNetPairDataset(torch.utils.data.Dataset):
         self.check_overlap = self.min_overlap is not None or self.max_overlap is not None
         self.estimate_normal = estimate_normal
         self.overfitting_index = overfitting_index
+        self.outlier_augmentation = outlier_augmentation
 
         data_list = load_pickle(osp.join(dataset_root, f'{subset}.pkl'))
         data_list = [x for x in data_list if x['label'] in self.class_indices]
         if overfitting_index is not None and deterministic:
             data_list = [data_list[overfitting_index]]
         self.data_list = data_list
+
+        self.gmm_sample = GmmSample(1-self.outlier_augmentation, 0.01,
+                                    self.noise_magnitude, self.num_points)
+        
+        
 
     def get_class_indices(self, class_indices, asymmetric):
         r"""Generate class indices.
@@ -132,6 +140,8 @@ class ModelNetPairDataset(torch.utils.data.Dataset):
 
         # normalize raw point cloud
         raw_points = normalize_points(raw_points)
+
+
 
         # once sample on raw point cloud
         if not self.twice_sample:
@@ -200,7 +210,14 @@ class ModelNetPairDataset(torch.utils.data.Dataset):
             src_points, src_normals = random_sample_points(src_points, self.num_points, normals=src_normals)
 
         # random jitter
-        if self.noise_magnitude is not None:
+        #ipdb.set_trace()                    
+        if self.outlier_augmentation > 0:
+
+            src_points = self.gmm_sample.sample(src_points, src_normals)
+            ref_points = self.gmm_sample.sample(ref_points, ref_normals)
+
+        
+        elif self.noise_magnitude is not None:
             ref_points = random_jitter_points(ref_points, scale=0.01, noise_magnitude=self.noise_magnitude)
             src_points = random_jitter_points(src_points, scale=0.01, noise_magnitude=self.noise_magnitude)
 

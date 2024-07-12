@@ -1,12 +1,11 @@
 torch
 numpy
-scipy
+scikit-learn
 tqdm
 coloredlogs
 easydict
 nibabel
 open3d==0.11.2
-scikit-learn
 einops
 ipdb
 tensorboard

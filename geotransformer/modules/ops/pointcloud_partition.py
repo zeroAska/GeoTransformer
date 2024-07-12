@@ -1,7 +1,7 @@
 import warnings
 
 import torch
-
+import ipdb
 from geotransformer.modules.ops.pairwise_distance import pairwise_distance
 from geotransformer.modules.ops.index_select import index_select
 
@@ -92,6 +92,7 @@ def point_to_node_partition(
     matching_masks[point_to_node, point_indices] = True  # (M, N)
     sq_dist_mat.masked_fill_(~matching_masks, 1e12)  # (M, N)
 
+    #ipdb.set_trace()
     node_knn_indices = sq_dist_mat.topk(k=point_limit, dim=1, largest=False)[1]  # (M, K)
     node_knn_node_indices = index_select(point_to_node, node_knn_indices, dim=0)  # (M, K)
     node_indices = torch.arange(nodes.shape[0]).cuda().unsqueeze(1).expand(-1, point_limit)  # (M, K)

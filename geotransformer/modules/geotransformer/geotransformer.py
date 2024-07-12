@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-
+import ipdb
 from geotransformer.modules.ops import pairwise_distance
 from geotransformer.modules.transformer import SinusoidalPositionalEmbedding, RPEConditionalTransformer
 
@@ -39,6 +39,7 @@ class GeometricStructureEmbedding(nn.Module):
         d_indices = dist_map / self.sigma_d
 
         k = self.angle_k
+        #ipdb.set_trace()
         knn_indices = dist_map.topk(k=k + 1, dim=2, largest=False)[1][:, :, 1:]  # (B, N, k)
         knn_indices = knn_indices.unsqueeze(3).expand(batch_size, num_point, k, 3)  # (B, N, k, 3)
         expanded_points = points.unsqueeze(1).expand(batch_size, num_point, num_point, 3)  # (B, N, N, 3)

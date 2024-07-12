@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-
+import ipdb
 from geotransformer.modules.ops import apply_transform, pairwise_distance
 from geotransformer.modules.loss import WeightedCircleLoss
-from geotransformer.modules.registration.metrics import isotropic_transform_error
+from geotransformer.modules.registration.metrics import isotropic_transform_error, mean_angle_error
 
 
 class CoarseMatchingLoss(nn.Module):
@@ -141,13 +141,16 @@ class Evaluator(nn.Module):
         gt_src_points = apply_transform(src_points, transform)
         est_src_points = apply_transform(src_points, est_transform)
         rmse = torch.linalg.norm(est_src_points - gt_src_points, dim=1).mean()
+        
+        angle, trans = mean_angle_error(transform, est_transform)
+        #ipdb.set_trace()
 
-        return rre, rte, rmse, recall
+        return rre, rte, rmse, recall, angle, trans
 
     def forward(self, output_dict, data_dict):
         c_precision = self.evaluate_coarse(output_dict)
         f_precision = self.evaluate_fine(output_dict, data_dict)
-        rre, rte, rmse, recall = self.evaluate_registration(output_dict, data_dict)
+        rre, rte, rmse, recall, angle, translation = self.evaluate_registration(output_dict, data_dict)
 
         return {
             'PIR': c_precision,
@@ -156,4 +159,6 @@ class Evaluator(nn.Module):
             'RTE': rte,
             'RMSE': rmse,
             'RR': recall,
+            'angle': angle,
+            'translation': translation
         }

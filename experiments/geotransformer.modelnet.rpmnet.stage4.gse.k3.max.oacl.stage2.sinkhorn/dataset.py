@@ -24,6 +24,7 @@ def train_valid_data_loader(cfg, distributed):
         twice_transform=cfg.data.twice_transform,
         return_normals=False,
         return_occupancy=True,
+        outlier_augmentation=cfg.data.outlier_augmentation
     )
     neighbor_limits = calibrate_neighbors_stack_mode(
         train_dataset,
@@ -97,6 +98,7 @@ def test_data_loader(cfg):
         twice_transform=cfg.data.twice_transform,
         return_normals=False,
         return_occupancy=True,
+        outlier_augmentation=cfg.data.outlier_augmentation        
     )
     neighbor_limits = calibrate_neighbors_stack_mode(
         train_dataset,
@@ -123,6 +125,7 @@ def test_data_loader(cfg):
         twice_transform=cfg.data.twice_transform,
         return_normals=False,
         return_occupancy=True,
+        outlier_augmentation=cfg.data.outlier_augmentation        
     )
     test_loader = build_dataloader_stack_mode(
         test_dataset,
