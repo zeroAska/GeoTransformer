@@ -28,11 +28,11 @@ ensure_dir(_C.event_dir)
 
 # data
 _C.data = edict()
-_C.data.dataset_root = osp.join(_C.root_dir, "data", "ModelNet")
+_C.data.dataset_root = osp.join(_C.root_dir, "data", "eth3d")
 _C.data.num_points = 1024 #717
 _C.data.voxel_size = None
 _C.data.rotation_magnitude = 10.0 #60.0
-_C.data.translation_magnitude = 0.0 #0.5
+_C.data.translation_magnitude = 0.0
 _C.data.keep_ratio = 1.0 #0.7
 _C.data.crop_method = "plane"
 _C.data.asymmetric = True
@@ -110,7 +110,7 @@ _C.backbone.output_dim = 256
 
 # model - Global
 _C.model = edict()
-_C.model.ground_truth_matching_radius = 0.05
+_C.model.ground_truth_matching_radius = 0.2 #0.05
 _C.model.num_points_in_patch = 128
 _C.model.num_sinkhorn_iterations = 100
 

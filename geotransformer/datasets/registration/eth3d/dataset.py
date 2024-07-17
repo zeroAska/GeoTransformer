@@ -1,6 +1,6 @@
 import os.path as osp
 import random
-
+import ipdb
 import numpy as np
 import torch.utils.data
 
@@ -110,6 +110,8 @@ class OdometryEth3dPairDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         data_dict = {}
+
+        #ipdb.set_trace()
 
         #metadata = self.metadata[index]
         #data_dict['seq_id'] = self.rgbd.scene_info[scene_id] #metadata['seq_id']

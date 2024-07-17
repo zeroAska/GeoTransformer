@@ -112,6 +112,7 @@ def inverse_transform(transform: np.ndarray) -> np.ndarray:
 def random_sample_rotation(rotation_factor: float = 1.0) -> np.ndarray:
     # angle_z, angle_y, angle_x
     euler = np.random.rand(3) * np.pi * 2 / rotation_factor  # (0, 2 * pi / rotation_range)
+    #euler = np.random.randint(0, (int( rotation_factor, 3) * np.pi / 180
     rotation = Rotation.from_euler('zyx', euler).as_matrix()
     return rotation
 
@@ -126,7 +127,8 @@ def random_sample_rotation_v2() -> np.ndarray:
 
 
 def random_sample_transform(rotation_magnitude: float, translation_magnitude: float) -> np.ndarray:
-    euler = np.random.rand(3) * np.pi * rotation_magnitude / 180.0  # (0, rot_mag)
+    #euler = np.random.rand(3) * np.pi * rotation_magnitude / 180.0  # (0, rot_mag)
+    euler = np.random.randint(0, int(rotation_magnitude), 3) * np.pi / 180.0
     rotation = Rotation.from_euler('zyx', euler).as_matrix()
     translation = np.random.uniform(-translation_magnitude, translation_magnitude, 3)
     transform = get_transform_from_rotation_translation(rotation, translation)

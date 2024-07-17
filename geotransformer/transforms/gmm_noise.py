@@ -29,12 +29,18 @@ class GmmSample:
         inlier_index = np.squeeze(np.argwhere(inlier_outlier > 0.5))
         outlier_index = np.squeeze(np.argwhere(inlier_outlier < 0.5))
         gaussian_noise = np.random.normal(scale=self.sigma, size=inlier_index.shape[0])
+        if len(outlier_index.shape)< 1:
+            print("outlier_index", inlier_index)
+            uniform_size = 0
+        else:
+            uniform_size = outlier_index.shape[0]
         uniform_noise = np.random.uniform(low=-self.uniform_range, high=self.uniform_range,
-                                          size=outlier_index.shape[0])
+                                          size=uniform_size)
 
         #ipdb.set_trace()
         center[inlier_index] += direction[inlier_index] * np.repeat(gaussian_noise[:, np.newaxis], 3, axis=1)
-        center[outlier_index] += direction[outlier_index] * np.repeat(uniform_noise[:, np.newaxis], 3, axis=1)
+        if len(outlier_index.shape) >= 1:
+            center[outlier_index] += direction[outlier_index] * np.repeat(uniform_noise[:, np.newaxis], 3, axis=1)
         #print("finish gmm smaple")
         return center
 

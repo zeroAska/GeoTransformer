@@ -698,6 +698,7 @@ class TumFormatDataLoader(RegistrationDataset):
              #       selected_key = key
             return self.get_dataindex(self.dataset_index, index % len(self.dataset_index))
         else:
+            assert(self.access_seq in self.dataset_index)
             index = index % len(self.dataset_index[self.access_seq])
             return self.get_dataindex(self.dataset_index[self.access_seq], index)
 

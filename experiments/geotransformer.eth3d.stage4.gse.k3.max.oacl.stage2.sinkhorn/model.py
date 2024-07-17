@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from IPython import embed
-
+import ipdb
 from geotransformer.modules.ops import point_to_node_partition, index_select
 from geotransformer.modules.registration import get_node_correspondences
 from geotransformer.modules.sinkhorn import LearnableLogOptimalTransport
@@ -94,6 +94,10 @@ class GeoTransformer(nn.Module):
         output_dict['ref_points'] = ref_points
         output_dict['src_points'] = src_points
 
+        if ref_points_f.numel() == 0 or src_points_c.numel() == 0:
+            ipdb.set_trace()
+        
+
         # 1. Generate ground truth node correspondences
         _, ref_node_masks, ref_node_knn_indices, ref_node_knn_masks = point_to_node_partition(
             ref_points_f, ref_points_c, self.num_points_in_patch
@@ -119,6 +123,10 @@ class GeoTransformer(nn.Module):
             ref_knn_masks=ref_node_knn_masks,
             src_knn_masks=src_node_knn_masks,
         )
+
+        if ref_node_knn_points.numel() == 0 or src_node_knn_points.numel() == 0:
+            ipdb.set_trace()
+        
 
         output_dict['gt_node_corr_indices'] = gt_node_corr_indices
         output_dict['gt_node_corr_overlaps'] = gt_node_corr_overlaps
@@ -159,11 +167,18 @@ class GeoTransformer(nn.Module):
             output_dict['ref_node_corr_indices'] = ref_node_corr_indices
             output_dict['src_node_corr_indices'] = src_node_corr_indices
 
+            if ref_node_corr_indices.numel() == 0 or src_node_corr_indices.numel() == 0:
+                ipdb.set_trace()
+            
+
             # 7 Random select ground truth node correspondences during training
             if self.training:
                 ref_node_corr_indices, src_node_corr_indices, node_corr_scores = self.coarse_target(
                     gt_node_corr_indices, gt_node_corr_overlaps
                 )
+                if ref_node_corr_indices.numel() == 0 or src_node_corr_indices.numel() == 0:
+                    ipdb.set_trace()
+                
 
         # 7.2 Generate batched node points & feats
         ref_node_corr_knn_indices = ref_node_knn_indices[ref_node_corr_indices]  # (P, K)
@@ -184,6 +199,9 @@ class GeoTransformer(nn.Module):
         output_dict['src_node_corr_knn_masks'] = src_node_corr_knn_masks
 
         # 8. Optimal transport
+
+        if ref_node_corr_knn_feats.numel() == 0 or src_node_corr_knn_feats.numel() == 0:
+            ipdb.set_trace()
         matching_scores = torch.einsum('bnd,bmd->bnm', ref_node_corr_knn_feats, src_node_corr_knn_feats)  # (P, K, K)
         matching_scores = matching_scores / feats_f.shape[1] ** 0.5
         matching_scores = self.optimal_transport(matching_scores, ref_node_corr_knn_masks, src_node_corr_knn_masks)

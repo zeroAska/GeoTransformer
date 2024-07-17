@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-
+import ipdb
 from geotransformer.modules.ops import apply_transform, pairwise_distance
-from geotransformer.modules.registration.metrics import isotropic_transform_error
 from geotransformer.modules.loss import WeightedCircleLoss
+from geotransformer.modules.registration.metrics import isotropic_transform_error, mean_angle_error, mean_and_std_error
 
 
 class CoarseMatchingLoss(nn.Module):
@@ -85,9 +85,9 @@ class OverallLoss(nn.Module):
         loss = self.weight_coarse_loss * coarse_loss + self.weight_fine_loss * fine_loss
 
         return {
+            'loss': loss,
             'c_loss': coarse_loss,
             'f_loss': fine_loss,
-            'loss': loss,
         }
 
 
@@ -96,8 +96,8 @@ class Evaluator(nn.Module):
         super(Evaluator, self).__init__()
         self.acceptance_overlap = cfg.eval.acceptance_overlap
         self.acceptance_radius = cfg.eval.acceptance_radius
-        self.rre_threshold = cfg.eval.rre_threshold
-        self.rte_threshold = cfg.eval.rte_threshold
+        self.acceptance_rre = cfg.eval.rre_threshold
+        self.acceptance_rte = cfg.eval.rte_threshold
 
     @torch.no_grad()
     def evaluate_coarse(self, output_dict):
@@ -109,7 +109,7 @@ class Evaluator(nn.Module):
         gt_node_corr_indices = gt_node_corr_indices[masks]
         gt_ref_node_corr_indices = gt_node_corr_indices[:, 0]
         gt_src_node_corr_indices = gt_node_corr_indices[:, 1]
-        gt_node_corr_map = torch.zeros(size=(ref_length_c, src_length_c)).cuda()
+        gt_node_corr_map = torch.zeros(ref_length_c, src_length_c).cuda()
         gt_node_corr_map[gt_ref_node_corr_indices, gt_src_node_corr_indices] = 1.0
 
         ref_node_corr_indices = output_dict['ref_node_corr_indices']
@@ -133,19 +133,34 @@ class Evaluator(nn.Module):
     def evaluate_registration(self, output_dict, data_dict):
         transform = data_dict['transform']
         est_transform = output_dict['estimated_transform']
+        src_points = output_dict['src_points']
+
         rre, rte = isotropic_transform_error(transform, est_transform)
-        recall = torch.logical_and(torch.lt(rre, self.rre_threshold), torch.lt(rte, self.rte_threshold)).float()
-        return rre, rte, recall
+        recall = torch.logical_and(torch.lt(rre, self.acceptance_rre), torch.lt(rte, self.acceptance_rte)).float()
+
+        gt_src_points = apply_transform(src_points, transform)
+        est_src_points = apply_transform(src_points, est_transform)
+        rmse = torch.linalg.norm(est_src_points - gt_src_points, dim=1).mean()
+        
+        angle, trans, std_angle, std_trans = mean_and_std_error(transform, est_transform)
+        #ipdb.set_trace()
+
+        return rre, rte, rmse, recall, angle, trans, std_angle, std_trans
 
     def forward(self, output_dict, data_dict):
         c_precision = self.evaluate_coarse(output_dict)
         f_precision = self.evaluate_fine(output_dict, data_dict)
-        rre, rte, recall = self.evaluate_registration(output_dict, data_dict)
+        rre, rte, rmse, recall, angle, translation, std_angle, std_trans = self.evaluate_registration(output_dict, data_dict)
 
         return {
             'PIR': c_precision,
             'IR': f_precision,
             'RRE': rre,
             'RTE': rte,
+            'RMSE': rmse,
             'RR': recall,
+            'angle': angle,
+            'translation': translation,
+            'std_angle': std_angle,
+            'std_trans': std_trans
         }

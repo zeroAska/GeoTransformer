@@ -51,5 +51,23 @@ def main():
     tester.run()
 
 
+def main_different_outlier():
+
+    for angle in [ 45.0]:
+        for noise in [0.0, 0.1]:
+            for outlier in [0.0, 0.2]:
+                for crop in [0.0, 0.05, 0.1, 0.2]:
+                    #print("GeoTransformer ModelNet: angle {}, noise {}, outlier {}".format(angle, noise, outlier))
+                    cfg = make_cfg()
+                    cfg.data.rotation_magnitude = angle
+                    cfg.test.noise_magnitude = noise
+                    cfg.data.outlier_augmentation = outlier
+                    cfg.data.keep_ratio = 1-crop
+                    tester = Tester(cfg)
+                    tester.run()
+                    print("Last result: GeoTransformer ModelNet: angle {}, noise {}, outlier {}, cropping {}".format(angle, noise, outlier, crop))
+                    print("====================")
+
+
 if __name__ == '__main__':
-    main()
+    main() #_different_outlier()

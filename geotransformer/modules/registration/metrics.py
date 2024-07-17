@@ -129,6 +129,37 @@ def matrix_to_euler_angles(matrix: torch.Tensor, convention: str) -> torch.Tenso
     )
     return torch.stack(o, -1)
 
+def mean_and_std_error(gt_poses, poses):
+
+    r"""Mean Angle  Error and std.
+
+    AAE = || Log(R^T \cdot \bar{R}) || 
+
+    Args:
+        gt_rotations (Tensor): ground truth rotation matrix (*, 3, 3)
+        rotations (Tensor): estimated rotation matrix (*, 3, 3)
+
+    Returns:
+        mae (Tensor): mean angle errors (*)
+    """
+
+    gt_rotations = gt_poses[..., :3, :3]
+    rotations = poses[..., :3, :3]
+    mat = torch.matmul(rotations.transpose(-1, -2), gt_rotations)
+    pose_diff = torch.matmul(torch.inverse(gt_poses), poses)
+    
+    angles = matrix_to_euler_angles(pose_diff[..., :3, :3], "XYZ")
+    #trace = mat[..., 0, 0] + mat[..., 1, 1] + mat[..., 2, 2]
+    #x = 0.5 * (trace - 1.0)
+    #x = x.clamp(min=-1.0, max=1.0)
+    #x = torch.arccos(x)
+    aae = angles.norm(dim=-1)/ np.pi * 180
+    std_angle = torch.std(angles, dim=-1)
+
+    ate = (pose_diff[..., :3, 3]).norm(dim=-1)
+    std_trans = torch.std(pose_diff[..., :3, 3], dim=-1)    
+    return aae, ate, std_angle, std_trans
+    
 
 
 def mean_angle_error(gt_poses, poses):

@@ -29,11 +29,11 @@ ensure_dir(_C.event_dir)
 # data
 _C.data = edict()
 _C.data.dataset_root = osp.join(_C.root_dir, "data", "ModelNet")
-_C.data.num_points = 1024 #717
+_C.data.num_points = 1024
 _C.data.voxel_size = None
 _C.data.rotation_magnitude = 90.0 #60.0
 _C.data.translation_magnitude = 0.0 #0.5
-_C.data.keep_ratio = 1.0 #0.7
+_C.data.keep_ratio = 1.0
 _C.data.crop_method = "plane"
 _C.data.asymmetric = True
 _C.data.twice_sample = True
@@ -44,14 +44,14 @@ _C.data.outlier_augmentation = 0.0 #0.2 #0.2
 _C.train = edict()
 _C.train.batch_size = 1
 _C.train.num_workers = 8
-_C.train.noise_magnitude = 0.01 #0.05
+_C.train.noise_magnitude = 0.00 #0.05
 _C.train.class_indices = "all"
 
 # test data
 _C.test = edict()
 _C.test.batch_size = 1
 _C.test.num_workers = 8
-_C.test.noise_magnitude = 0.01 # 0.05
+_C.test.noise_magnitude = 0.0 #0.1 #0.01 # 0.05
 _C.test.class_indices = "all"
 
 # evaluation

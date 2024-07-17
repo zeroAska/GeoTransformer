@@ -12,7 +12,7 @@ from geotransformer.modules.geotransformer import (
     SuperPointTargetGenerator,
     LocalGlobalRegistration,
 )
-
+import ipdb
 from backbone import KPConvFPN
 
 
